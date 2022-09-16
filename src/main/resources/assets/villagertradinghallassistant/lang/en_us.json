@@ -1,3 +1,6 @@
 {
-  "villagertradinghallassistant."
+  "villagertradinghallassistant.hotkeys.category.generic": "Hotkeys",
+  "config.villagertradinghallassistant.hotkeys": "Hotkeys",
+  "config.villagertradinghallassistant.config": "Config",
+  "config.villagertradinghallassistant.title.config": "Villager Trading Hall Assistant Configs"
 }

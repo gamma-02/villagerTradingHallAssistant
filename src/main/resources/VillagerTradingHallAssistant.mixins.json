@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "gamma02.villagertradinghallassistant.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "ClientWorldMixin",
+    "nullVillagerAndWorkstation"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

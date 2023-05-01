@@ -18,6 +18,8 @@ import net.minecraft.item.*;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtFloat;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
@@ -26,7 +28,6 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.village.TradeOffer;
 import net.minecraft.village.VillagerProfession;
 
@@ -44,6 +45,8 @@ public class MainMod {
 
     public boolean toolWarning = true;
 
+    public boolean isBreakingBlock = false;
+
     public boolean hasBrokenBlock = true;
 
 
@@ -55,6 +58,7 @@ public class MainMod {
         if(VillagerTradingHallAssistant.workstation != null && world.getBlockState(VillagerTradingHallAssistant.workstation).getBlock() == Blocks.AIR && toBreakWorkstation){
             toBreakWorkstation = false;
             hasBrokenBlock = true;
+            isBreakingBlock = false;
         }
 
         if(VillagerTradingHallAssistant.villager != null && MinecraftClient.getInstance().currentScreen == null && !toBreakWorkstation){
@@ -81,7 +85,8 @@ public class MainMod {
                     return;
                 }
                 player.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, new Vec3d(VillagerTradingHallAssistant.workstation.getX() + 0.5, VillagerTradingHallAssistant.workstation.getY()+0.5, VillagerTradingHallAssistant.workstation.getZ() + 0.5));
-                MinecraftClient.getInstance().options.attackKey.setPressed(true);
+//                MinecraftClient.getInstance().options.attackKey.setPressed(true);
+                this.isBreakingBlock = true;
 //                Objects.requireNonNull(MinecraftClient.getInstance().interactionManager).attackBlock(VillagerTradingHallAssistant.workstation, Direction.UP);
                 hasBrokenBlock = false;
 //                toBreakWorkstation = false;
@@ -109,7 +114,7 @@ public class MainMod {
                         Identifier enchant = new Identifier(((NbtCompound) EnchantedBookItem.getEnchantmentNbt(stack).get(0)).getString("id"));
                         System.out.println(enchant);
                         System.out.println("lvl: " + ((NbtCompound) EnchantedBookItem.getEnchantmentNbt(stack).get(0)).getInt("lvl"));
-                        if (Configs.ACCEPTABLE_ENCHANTMENTS.getStrings().contains(enchant.getPath()) && Objects.requireNonNull(Registry.ENCHANTMENT.get(enchant)).getMaxLevel()/*I SHOULD HOPE that this will never be null lmao*/ == ((NbtCompound) EnchantedBookItem.getEnchantmentNbt(stack).get(0)).getInt("lvl")) {
+                        if (Configs.ACCEPTABLE_ENCHANTMENTS.getStrings().contains(enchant.getPath()) && Objects.requireNonNull(Registries.ENCHANTMENT.get(enchant)).getMaxLevel()/*I SHOULD HOPE that this will never be null lmao*/ == ((NbtCompound) EnchantedBookItem.getEnchantmentNbt(stack).get(0)).getInt("lvl") && offer.getAdjustedFirstBuyItem().getCount() <= Configs.MAX_TRADE_COST.getIntegerValue()) {
                             MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of("Found enchantment " + enchant.getPath()));
                             toBreakWorkstation = false;
                             toolWarning = true;

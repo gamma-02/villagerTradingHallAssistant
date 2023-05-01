@@ -15,12 +15,12 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.ai.brain.MemoryModuleType;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.fluid.Fluid;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.RegistryEntry;
+
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.poi.PointOfInterest;
 import net.minecraft.world.poi.PointOfInterestType;
@@ -69,7 +69,7 @@ public class HotkeyHandlers {
                 BlockPos pos = world.raycast(new RaycastContext(entity.getEyePos(), entity.getEyePos().add(getRotationVec3d(entity.getPitch(), entity.getYaw()).multiply(5)), RaycastContext.ShapeType.VISUAL, RaycastContext.FluidHandling.NONE, entity)).getBlockPos();
                 BlockState state = world.getBlockState(pos);
 
-                for (Iterator<PointOfInterestType> it = Registry.POINT_OF_INTEREST_TYPE.iterator(); it.hasNext(); ) {
+                for (Iterator<PointOfInterestType> it = Registries.POINT_OF_INTEREST_TYPE.iterator(); it.hasNext(); ) {
                     PointOfInterestType poit = it.next();
                     if(poit.contains(state)){
                         VillagerTradingHallAssistant.workstation = pos;

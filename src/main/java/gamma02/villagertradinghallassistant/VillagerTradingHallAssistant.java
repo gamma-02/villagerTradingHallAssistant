@@ -15,6 +15,7 @@ import gamma02.villagertradinghallassistant.config.HotkeyHandlers;
 import gamma02.villagertradinghallassistant.config.Hotkeys;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.structure.VillageGenerator;
@@ -47,6 +48,9 @@ public class VillagerTradingHallAssistant implements ClientModInitializer, IInit
     public void onInitializeClient() {
 
         InitializationHandler.getInstance().registerInitializationHandler(this);
+
+        ClientPlayConnectionEvents.DISCONNECT.register( (a, b) -> this.onLeaveGame());
+
     }
 
     @Override
@@ -87,5 +91,11 @@ public class VillagerTradingHallAssistant implements ClientModInitializer, IInit
             List<IHotkey> hotkeys = List.of(Hotkeys.RAYTRACE_WORKSTATION, Hotkeys.GET_VILLAGER, Hotkeys.OPEN_CONFIG, Configs.ENABLE_MOD);
             manager.addHotkeysForCategory(MOD_ID, mod_id+".hotkeys.category.generic", hotkeys);
         }
+    }
+
+
+    public void onLeaveGame(){
+        VillagerTradingHallAssistant.workstation = null;
+        VillagerTradingHallAssistant.villager = null;
     }
 }

@@ -14,6 +14,17 @@ repositories {
     // for more information about repositories.
     maven { url 'https://masa.dy.fi/maven' }
     maven { url 'https://maven.terraformersmc.com/releases/' }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Modrinth"
+                url = "https://api.modrinth.com/maven"
+            }
+        }
+        filter {
+            includeGroup "maven.modrinth"
+        }
+    }
 
 }
 
@@ -28,6 +39,9 @@ dependencies {
 
     //malilib
     modImplementation "fi.dy.masa.malilib:malilib-fabric-${project.minecraft_version_out}:${project.malilib_version}"
+
+    modImplementation "maven.modrinth:trade-cycling:qLOXh29y"
+
 
 }
 

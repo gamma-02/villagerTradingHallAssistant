@@ -21,7 +21,8 @@
     "fabricloader": ">=0.14.9",
     "fabric": "*",
     "minecraft": "1.19.2",
-    "malilib": ">=0.13.0"
+    "malilib": ">=0.13.0",
+    "trade_cycling": ">=1.19.2-1.0.5"
   },
   "accessWidener": "VillagerTradingHallAssistant.aw"
 }

@@ -1,33 +1,24 @@
 package gamma02.villagertradinghallassistant.config;
 
-import fi.dy.masa.malilib.MaLiLibConfigGui;
 import fi.dy.masa.malilib.gui.GuiBase;
-import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import gamma02.villagertradinghallassistant.VillagerTradingHallAssistant;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.ai.brain.MemoryModuleType;
 import net.minecraft.entity.passive.VillagerEntity;
-import net.minecraft.fluid.Fluid;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.RegistryEntry;
 import net.minecraft.world.RaycastContext;
-import net.minecraft.world.poi.PointOfInterest;
 import net.minecraft.world.poi.PointOfInterestType;
 
 import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
 
 public class HotkeyHandlers {
 
@@ -69,7 +60,7 @@ public class HotkeyHandlers {
                 BlockPos pos = world.raycast(new RaycastContext(entity.getEyePos(), entity.getEyePos().add(getRotationVec3d(entity.getPitch(), entity.getYaw()).multiply(5)), RaycastContext.ShapeType.VISUAL, RaycastContext.FluidHandling.NONE, entity)).getBlockPos();
                 BlockState state = world.getBlockState(pos);
 
-                for (Iterator<PointOfInterestType> it = Registry.POINT_OF_INTEREST_TYPE.iterator(); it.hasNext(); ) {
+                for (Iterator<PointOfInterestType> it = Registries.POINT_OF_INTEREST_TYPE.iterator(); it.hasNext(); ) {
                     PointOfInterestType poit = it.next();
                     if(poit.contains(state)){
                         VillagerTradingHallAssistant.workstation = pos;

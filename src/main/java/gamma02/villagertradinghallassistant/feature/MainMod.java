@@ -107,7 +107,9 @@ public class MainMod {
                         Identifier enchant = new Identifier(((NbtCompound) EnchantedBookItem.getEnchantmentNbt(stack).get(0)).getString("id"));
                         System.out.println(enchant);
                         System.out.println("lvl: " + ((NbtCompound) EnchantedBookItem.getEnchantmentNbt(stack).get(0)).getInt("lvl"));
-                        if (Configs.ACCEPTABLE_ENCHANTMENTS.getStrings().contains(enchant.getPath()) && Objects.requireNonNull(Registries.ENCHANTMENT.get(enchant)).getMaxLevel()/*I SHOULD HOPE that this will never be null lmao*/ == ((NbtCompound) EnchantedBookItem.getEnchantmentNbt(stack).get(0)).getInt("lvl")) {
+                        if (Configs.ACCEPTABLE_ENCHANTMENTS.getStrings().contains(enchant.getPath()) &&
+                                Objects.requireNonNull(Registries.ENCHANTMENT.get(enchant)).getMaxLevel()/*I SHOULD HOPE that this will never be null lmao*/ == ((NbtCompound) EnchantedBookItem.getEnchantmentNbt(stack).get(0)).getInt("lvl")
+                                && offer.getAdjustedFirstBuyItem().getCount() <= Configs.MAX_COST.getIntegerValue()) {
                             MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of("Found enchantment " + enchant.getPath()));
                             toBreakWorkstation = false;
                             toolWarning = true;
@@ -125,7 +127,6 @@ public class MainMod {
     }
 
     public static void placeWorkstation(BlockPos pos, BlockItem block){
-        ClientWorld world = MinecraftClient.getInstance().world;
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         int slot = player.getInventory().getSlotWithStack(block.getDefaultStack());
         if(PlayerInventory.isValidHotbarIndex(slot)){

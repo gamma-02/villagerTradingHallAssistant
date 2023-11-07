@@ -77,11 +77,13 @@ public class MainMod {
                     return;
                 }
                 player.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, new Vec3d(VillagerTradingHallAssistant.workstation.getX() + 0.5, VillagerTradingHallAssistant.workstation.getY()+0.5, VillagerTradingHallAssistant.workstation.getZ() + 0.5));
-//                MinecraftClient.getInstance().options.attackKey.setPressed(true);
-                VillagerTradingHallAssistant.isBreakingBlock = true;
+                MinecraftClient.getInstance().options.attackKey.setPressed(true);
+//                VillagerTradingHallAssistant.isBreakingBlock = true;
 //                Objects.requireNonNull(MinecraftClient.getInstance().interactionManager).attackBlock(VillagerTradingHallAssistant.workstation, Direction.UP);
                 hasBrokenBlock = false;
 //                toBreakWorkstation = false;
+            }else{
+                VillagerTradingHallAssistant.isBreakingBlock = false;
             }
 
 

@@ -5,10 +5,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fi.dy.masa.malilib.config.ConfigUtils;
 import fi.dy.masa.malilib.config.IConfigBase;
-import fi.dy.masa.malilib.config.IConfigBoolean;
 import fi.dy.masa.malilib.config.IConfigHandler;
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import fi.dy.masa.malilib.config.options.ConfigBooleanHotkeyed;
+import fi.dy.masa.malilib.config.options.ConfigInteger;
 import fi.dy.masa.malilib.config.options.ConfigStringList;
 import fi.dy.masa.malilib.util.FileUtils;
 import fi.dy.masa.malilib.util.JsonUtils;
@@ -27,7 +27,9 @@ public class Configs implements IConfigHandler {
 
     public static final ConfigBooleanHotkeyed ENABLE_MOD = new ConfigBooleanHotkeyed("enableMod", false, "F,E", "enables finding the villager trade");
 
-    public static final List<IConfigBase> CONFIGS = List.of(AUTO_FIND_WORKSTATION, ACCEPTABLE_ENCHANTMENTS, ENABLE_MOD);
+    public static final ConfigInteger MAX_COST = new ConfigInteger("maxTradeCost", 64, 0, 64, "this is a cutoff for how expensive a trade should be at max");
+
+    public static final List<IConfigBase> CONFIGS = List.of(AUTO_FIND_WORKSTATION, ACCEPTABLE_ENCHANTMENTS, ENABLE_MOD, MAX_COST);
 
 
     public static void loadFromFile() {
@@ -40,7 +42,7 @@ public class Configs implements IConfigHandler {
                 JsonObject obj = element.getAsJsonObject();
                 ConfigUtils.readConfigBase(obj, "Config", CONFIGS);
                 ConfigUtils.readConfigBase(obj, "Hotkeys", Hotkeys.HOTKEYS);
-                ENABLE_MOD.setBooleanValue(false);
+                ENABLE_MOD.resetToDefault();
             }
         }
     }

@@ -77,7 +77,8 @@ public class MainMod {
                     return;
                 }
                 player.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, new Vec3d(VillagerTradingHallAssistant.workstation.getX() + 0.5, VillagerTradingHallAssistant.workstation.getY()+0.5, VillagerTradingHallAssistant.workstation.getZ() + 0.5));
-                MinecraftClient.getInstance().options.attackKey.setPressed(true);
+//                MinecraftClient.getInstance().options.attackKey.setPressed(true);
+                VillagerTradingHallAssistant.isBreakingBlock = true;
 //                Objects.requireNonNull(MinecraftClient.getInstance().interactionManager).attackBlock(VillagerTradingHallAssistant.workstation, Direction.UP);
                 hasBrokenBlock = false;
 //                toBreakWorkstation = false;
@@ -85,6 +86,7 @@ public class MainMod {
 
 
             if (Objects.requireNonNull(world).getBlockState(VillagerTradingHallAssistant.workstation).getBlock() == Blocks.AIR && VillagerTradingHallAssistant.villager != null && VillagerTradingHallAssistant.villager.getVillagerData().getProfession() == VillagerProfession.NONE){
+                VillagerTradingHallAssistant.isBreakingBlock = false;
                 placeWorkstation(VillagerTradingHallAssistant.workstation, (BlockItem) workstation.asItem());//please never be weird lol
             }
 

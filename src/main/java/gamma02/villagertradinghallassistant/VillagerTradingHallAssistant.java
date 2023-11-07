@@ -1,8 +1,6 @@
 package gamma02.villagertradinghallassistant;
 
 import fi.dy.masa.malilib.config.ConfigManager;
-import fi.dy.masa.malilib.config.IConfigBase;
-import fi.dy.masa.malilib.config.IConfigHandler;
 import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.event.InitializationHandler;
 import fi.dy.masa.malilib.event.InputEventHandler;
@@ -14,18 +12,12 @@ import gamma02.villagertradinghallassistant.config.Configs;
 import gamma02.villagertradinghallassistant.config.HotkeyHandlers;
 import gamma02.villagertradinghallassistant.config.Hotkeys;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.api.ModInitializer;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.passive.VillagerEntity;
-import net.minecraft.structure.VillageGenerator;
 import net.minecraft.util.math.BlockPos;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
-import static gamma02.villagertradinghallassistant.config.Hotkeys.HOTKEYS;
 import static gamma02.villagertradinghallassistant.config.Hotkeys.HOTKEYS_FOR_MAP;
 
 public class VillagerTradingHallAssistant implements ClientModInitializer, IInitializationHandler {
@@ -38,6 +30,8 @@ public class VillagerTradingHallAssistant implements ClientModInitializer, IInit
     public static BlockPos workstation = null;
     @Nullable
     public static VillagerEntity villager = null;
+
+    public static boolean isBreakingBlock = false;
 
 
 

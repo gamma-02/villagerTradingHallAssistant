@@ -24,6 +24,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.village.TradeOffer;
+import net.minecraft.village.TradeOfferList;
 import net.minecraft.village.VillagerProfession;
 
 import java.util.Objects;
@@ -33,14 +34,16 @@ public class MainMod {
 
 
 
-    public boolean toBreakWorkstation = false;
+    public boolean toRefreshTrades = false;
 
 
     public Block workstation = null;
 
     public boolean toolWarning = true;
 
-    public boolean hasBrokenBlock = true;
+    public boolean hasRefreshedTrades = true;
+
+    public TradeOfferList trades = null;
 
 
     public void tick(){
@@ -48,12 +51,14 @@ public class MainMod {
         ClientWorld world = MinecraftClient.getInstance().world;
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
 
-        if(VillagerTradingHallAssistant.workstation != null && world.getBlockState(VillagerTradingHallAssistant.workstation).getBlock() == Blocks.AIR && toBreakWorkstation){
-            toBreakWorkstation = false;
-            hasBrokenBlock = true;
+        if(VillagerTradingHallAssistant.workstation != null && world.getBlockState(VillagerTradingHallAssistant.workstation).getBlock() == Blocks.AIR && toRefreshTrades){
+            toRefreshTrades = false;
+            hasRefreshedTrades = true;
+//            MinecraftClient.getInstance().options.attackKey.setPressed(false);
         }
 
-        if(VillagerTradingHallAssistant.villager != null && MinecraftClient.getInstance().currentScreen == null && !toBreakWorkstation){
+
+        if(VillagerTradingHallAssistant.villager != null && MinecraftClient.getInstance().currentScreen == null && !toRefreshTrades){
             MinecraftClient.getInstance().interactionManager.interactEntity(player, VillagerTradingHallAssistant.villager, player.getActiveHand());
         }
 
@@ -62,12 +67,19 @@ public class MainMod {
 
         if(VillagerTradingHallAssistant.workstation != null) {
 
+
+            if(toRefreshTrades && MinecraftClient.getInstance().currentScreen != null){
+                MinecraftClient.getInstance().currentScreen.close();
+                MinecraftClient.getInstance().options.attackKey.setPressed(true);
+                MinecraftClient.getInstance().options.attackKey.setPressed(false);
+            }
+
 //            if(toBreakWorkstation && MinecraftClient.getInstance().currentScreen != null){
 //                MinecraftClient.getInstance().currentScreen.close();
 //            }
 
 
-            if (toBreakWorkstation && MinecraftClient.getInstance().currentScreen == null) {
+            if (toRefreshTrades && MinecraftClient.getInstance().currentScreen == null) {
                 workstation = world.getBlockState(VillagerTradingHallAssistant.workstation).getBlock();
                 if(!switchToEffectiveTool(world.getBlockState(VillagerTradingHallAssistant.workstation), player)){
                     if(toolWarning) {
@@ -76,55 +88,71 @@ public class MainMod {
                     }
                     return;
                 }
+
                 player.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, new Vec3d(VillagerTradingHallAssistant.workstation.getX() + 0.5, VillagerTradingHallAssistant.workstation.getY()+0.5, VillagerTradingHallAssistant.workstation.getZ() + 0.5));
+
                 MinecraftClient.getInstance().options.attackKey.setPressed(true);
-//                VillagerTradingHallAssistant.isBreakingBlock = true;
+                VillagerTradingHallAssistant.isBreakingBlock = true;
 //                Objects.requireNonNull(MinecraftClient.getInstance().interactionManager).attackBlock(VillagerTradingHallAssistant.workstation, Direction.UP);
-                hasBrokenBlock = false;
+                hasRefreshedTrades = false;
 //                toBreakWorkstation = false;
-            }else{
+            } else{
+
                 VillagerTradingHallAssistant.isBreakingBlock = false;
             }
 
 
             if (Objects.requireNonNull(world).getBlockState(VillagerTradingHallAssistant.workstation).getBlock() == Blocks.AIR && VillagerTradingHallAssistant.villager != null && VillagerTradingHallAssistant.villager.getVillagerData().getProfession() == VillagerProfession.NONE){
-                VillagerTradingHallAssistant.isBreakingBlock = false;
+//                VillagerTradingHallAssistant.isBreakingBlock = false;
                 placeWorkstation(VillagerTradingHallAssistant.workstation, (BlockItem) workstation.asItem());//please never be weird lol
             }
 
 
         }
-        if(VillagerTradingHallAssistant.villager != null && VillagerTradingHallAssistant.workstation != null && world.getBlockState(VillagerTradingHallAssistant.workstation).getBlock() != Blocks.AIR && hasBrokenBlock){
+
+
+        if(VillagerTradingHallAssistant.villager != null){
 
 
 
             VillagerEntity villager = VillagerTradingHallAssistant.villager;
 
 
-            if(villager.getVillagerData().getProfession() == VillagerProfession.LIBRARIAN && MinecraftClient.getInstance().currentScreen instanceof MerchantScreen) {
-                toBreakWorkstation = true;
-                for (TradeOffer offer : ((MerchantScreen) MinecraftClient.getInstance().currentScreen).getScreenHandler().getRecipes()) {
+            if(villager.getVillagerData().getProfession() == VillagerProfession.LIBRARIAN && hasRefreshedTrades &&
+                    MinecraftClient.getInstance().currentScreen instanceof MerchantScreen merchantScreen &&
+                !merchantScreen.getScreenHandler().getRecipes().equals(trades)) {
+                toRefreshTrades = true;
+                hasRefreshedTrades = false;
+                trades = merchantScreen.getScreenHandler().getRecipes();
+
+                for (TradeOffer offer : (merchantScreen).getScreenHandler().getRecipes()) {
                     ItemStack stack = offer.getSellItem();
                     if (stack.getItem() == Items.ENCHANTED_BOOK) {
                         Identifier enchant = new Identifier(((NbtCompound) EnchantedBookItem.getEnchantmentNbt(stack).get(0)).getString("id"));
                         System.out.println(enchant);
-                        System.out.println("lvl: " + ((NbtCompound) EnchantedBookItem.getEnchantmentNbt(stack).get(0)).getInt("lvl"));
+                        System.out.println("%s at lvl: %d cost: %d".formatted(enchant.toString(), ((NbtCompound) EnchantedBookItem.getEnchantmentNbt(stack).get(0)).getInt("lvl"), offer.getAdjustedFirstBuyItem().getCount()));
                         if (Configs.ACCEPTABLE_ENCHANTMENTS.getStrings().contains(enchant.getPath()) &&
                                 Objects.requireNonNull(Registries.ENCHANTMENT.get(enchant)).getMaxLevel()/*I SHOULD HOPE that this will never be null lmao*/ == ((NbtCompound) EnchantedBookItem.getEnchantmentNbt(stack).get(0)).getInt("lvl")
                                 && offer.getAdjustedFirstBuyItem().getCount() <= Configs.MAX_COST.getIntegerValue()) {
                             MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of("Found enchantment " + enchant.getPath()));
-                            toBreakWorkstation = false;
-                            toolWarning = true;
+                            toRefreshTrades = false;
+                            trades = null;
                             Configs.ENABLE_MOD.resetToDefault();
                         }
                     }
                 }
-
-                if(toBreakWorkstation){
-                    MinecraftClient.getInstance().currentScreen.close();
-                }
             }
         }
+//        if(toRefreshTrades && !hasRefreshedTrades && MinecraftClient.getInstance().currentScreen instanceof MerchantScreen screen && screen.getScreenHandler().getRecipes().equals(trades)){
+//            System.out.println("REFRESHING!");
+//            //send the trade cycling packet
+//            if (screen.getScreenHandler().isLeveled() && screen.getScreenHandler().getExperience() <= 0) {
+//                FabricTradeCyclingClientMod.instance().sendCycleTradesPacket();
+//                mc.getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+//            }
+//            hasRefreshedTrades = true;
+//
+//        }
 
     }
 

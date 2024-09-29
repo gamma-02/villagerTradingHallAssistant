@@ -15,6 +15,9 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.ToolComponent;
+import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -22,6 +25,7 @@ import net.minecraft.item.*;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtFloat;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
+import net.minecraft.registry.Registries;
 import net.minecraft.screen.MerchantScreenHandler;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
@@ -32,7 +36,6 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.village.TradeOffer;
 import net.minecraft.village.TradeOfferList;
 import net.minecraft.village.VillagerProfession;
@@ -127,18 +130,20 @@ public class MainMod {
             for (TradeOffer offer : (screen).getScreenHandler().getRecipes()) {
                 ItemStack stack = offer.getSellItem();
                 if (stack.getItem() == Items.ENCHANTED_BOOK) {
-                    Identifier enchant = new Identifier(((NbtCompound) EnchantedBookItem.getEnchantmentNbt(stack).get(0)).getString("id"));
-
-                    System.out.println("%s at lvl: %d cost: %d".formatted(enchant.toString(), ((NbtCompound) EnchantedBookItem.getEnchantmentNbt(stack).get(0)).getInt("lvl"), offer.getAdjustedFirstBuyItem().getCount()));
-                    if (Configs.ACCEPTABLE_ENCHANTMENTS.getStrings().contains(enchant.getPath()) &&
-                            Objects.requireNonNull(Registry.ENCHANTMENT.get(enchant)).getMaxLevel()/*I SHOULD HOPE that this will never be null lmao*/ == ((NbtCompound) EnchantedBookItem.getEnchantmentNbt(stack).get(0)).getInt("lvl")
-                            && offer.getAdjustedFirstBuyItem().getCount() <= Configs.MAX_COST.getIntegerValue()) {
-                        MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of("Found enchantment " + enchant.getPath() + " at a cost of " + offer.getAdjustedFirstBuyItem().getCount() + " emeralds"));
-                        toRefreshTrades = false;
+                    stack.getEnchantments().getEnchantments().forEach((enchantmentKey) -> {
+                        if(enchantmentKey.getKey().isPresent()) {
+                            System.out.println("%s at lvl: %d cost: %d".formatted(enchantmentKey.toString(), stack.getEnchantments().getLevel(Registries.ENCHANTMENT.get(enchantmentKey.getKey().get())), offer.getDisplayedFirstBuyItem().getCount()));
+                            if (Configs.ACCEPTABLE_ENCHANTMENTS.getStrings().contains(enchantmentKey.getIdAsString()) &&
+                                    Objects.requireNonNull(Registries.ENCHANTMENT.get(enchantmentKey.getKey().get())).getMaxLevel()/*I SHOULD HOPE that this will never be null lmao*/ == stack.getEnchantments().getLevel(Registries.ENCHANTMENT.get(enchantmentKey.getKey().get()))
+                                    && offer.getDisplayedFirstBuyItem().getCount() <= Configs.MAX_COST.getIntegerValue()) {
+                                MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of("Found enchantment " + enchantmentKey.getIdAsString() + " at a cost of " + offer.getDisplayedFirstBuyItem().getCount() + " emeralds"));
+                                toRefreshTrades = false;
 //                            toolWarning = true;
-                        Configs.ENABLE_MOD.resetToDefault();
-                        trades = null;
-                    }
+                                Configs.ENABLE_MOD.resetToDefault();
+                                trades = null;
+                            }
+                        }
+                    });
                 }
             }
 
@@ -147,7 +152,7 @@ public class MainMod {
 //            System.out.println("REFRESHING!");
             //send the trade cycling packet
             if (screen.getScreenHandler().isLeveled() && screen.getScreenHandler().getExperience() <= 0) {
-                TradeCyclingClientMod.sendCycleTradesPacket();
+                FabricTradeCyclingClientMod.instance().sendCycleTradesPacket();
 //                mc.getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             }
             hasRefreshedTrades = true;
@@ -178,7 +183,7 @@ public class MainMod {
 
         int slot = 0;
         for(ItemStack stack : player.getInventory().main){
-            if(stack.getItem().isSuitableFor(workstation)){
+            if(Objects.requireNonNull(stack.get(DataComponentTypes.TOOL)).isCorrectForDrops(workstation)){
                 break;
             }
 
@@ -195,7 +200,7 @@ public class MainMod {
 
     public Consumer<? super TradeOffer> printOfferList = ((offer) ->
     {
-        System.out.print("BUY: " + offer.getAdjustedFirstBuyItem().getItem() + (offer.getSecondBuyItem().isOf(Items.AIR) ? "" : "   BUYB: " + offer.getSecondBuyItem().getItem()) + "   SELL: " + offer.getSellItem().getItem());
+        System.out.print("BUY: " + offer.getDisplayedFirstBuyItem().getItem() + (offer.getSecondBuyItem().isEmpty() ? "" : "   BUYB: " + offer.getSecondBuyItem().get().item()) + "   SELL: " + offer.getSellItem().getItem());
     }
     );
 

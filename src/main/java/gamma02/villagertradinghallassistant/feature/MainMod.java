@@ -5,6 +5,7 @@ import de.maxhenkel.tradecycling.FabricTradeCyclingMod;
 import de.maxhenkel.tradecycling.TradeCyclingClientMod;
 import gamma02.villagertradinghallassistant.VillagerTradingHallAssistant;
 import gamma02.villagertradinghallassistant.config.Configs;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -22,6 +23,7 @@ import net.minecraft.item.*;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtFloat;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
+import net.minecraft.registry.Registries;
 import net.minecraft.screen.MerchantScreenHandler;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
@@ -32,7 +34,6 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.village.TradeOffer;
 import net.minecraft.village.TradeOfferList;
 import net.minecraft.village.VillagerProfession;
@@ -131,7 +132,7 @@ public class MainMod {
 
                     System.out.println("%s at lvl: %d cost: %d".formatted(enchant.toString(), ((NbtCompound) EnchantedBookItem.getEnchantmentNbt(stack).get(0)).getInt("lvl"), offer.getAdjustedFirstBuyItem().getCount()));
                     if (Configs.ACCEPTABLE_ENCHANTMENTS.getStrings().contains(enchant.getPath()) &&
-                            Objects.requireNonNull(Registry.ENCHANTMENT.get(enchant)).getMaxLevel()/*I SHOULD HOPE that this will never be null lmao*/ == ((NbtCompound) EnchantedBookItem.getEnchantmentNbt(stack).get(0)).getInt("lvl")
+                            Objects.requireNonNull(Registries.ENCHANTMENT.get(enchant)).getMaxLevel()/*I SHOULD HOPE that this will never be null lmao*/ == ((NbtCompound) EnchantedBookItem.getEnchantmentNbt(stack).get(0)).getInt("lvl")
                             && offer.getAdjustedFirstBuyItem().getCount() <= Configs.MAX_COST.getIntegerValue()) {
                         MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of("Found enchantment " + enchant.getPath() + " at a cost of " + offer.getAdjustedFirstBuyItem().getCount() + " emeralds"));
                         toRefreshTrades = false;
@@ -146,9 +147,13 @@ public class MainMod {
         if(toRefreshTrades && !hasRefreshedTrades && MinecraftClient.getInstance().currentScreen instanceof MerchantScreen screen && screen.getScreenHandler().getRecipes().equals(trades)){
 //            System.out.println("REFRESHING!");
             //send the trade cycling packet
-            if (screen.getScreenHandler().isLeveled() && screen.getScreenHandler().getExperience() <= 0) {
+            if (screen.getScreenHandler().isLeveled() && screen.getScreenHandler().getExperience() <= 0 && screen.getScreenHandler().getSlot(0).getStack().isEmpty()) {//make sure this thing works with that one other mod
                 TradeCyclingClientMod.sendCycleTradesPacket();
 //                mc.getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+//                ClientPlayNetworking.send(new CycleTradesPacket());
+
+
+
             }
             hasRefreshedTrades = true;
 

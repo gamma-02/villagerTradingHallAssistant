@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.0.7'
+    id 'fabric-loom' version '1.7-SNAPSHOT'
     id 'maven-publish'
 }
 
@@ -40,7 +40,7 @@ dependencies {
     //malilib
     modImplementation "fi.dy.masa.malilib:malilib-fabric-${project.minecraft_version_out}:${project.malilib_version}"
 
-    modImplementation "maven.modrinth:trade-cycling:qLOXh29y"
+    modImplementation "maven.modrinth:trade-cycling:1jpO2JE3"
 
 
 }

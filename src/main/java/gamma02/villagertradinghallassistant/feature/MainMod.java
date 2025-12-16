@@ -2,7 +2,6 @@ package gamma02.villagertradinghallassistant.feature;
 
 import gamma02.villagertradinghallassistant.VillagerTradingHallAssistant;
 import gamma02.villagertradinghallassistant.config.Configs;
-import gamma02.villagertradinghallassistant.mixin.MinecraftClientMixin;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -15,20 +14,13 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.*;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
-import net.minecraft.registry.BuiltinRegistries;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -68,7 +60,7 @@ public class MainMod {
             KeyBinding.setKeyPressed(attackKey, true);
         }
 
-        if(VillagerTradingHallAssistant.workstation != null && world.getBlockState(VillagerTradingHallAssistant.workstation).getBlock() == Blocks.AIR && toRefreshTrades){
+        if(VillagerTradingHallAssistant.workstation != null && world.getBlockState(VillagerTradingHallAssistant.workstation).getBlock() != Blocks.LECTERN && toRefreshTrades){
             toRefreshTrades = false;
             hasRefreshedTrades = true;
 //            InputUtil.Key attackKey = ((BoundKeyHolder) MinecraftClient.getInstance().options.attackKey).getBoundKey();

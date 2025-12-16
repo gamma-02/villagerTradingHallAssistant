@@ -6,7 +6,7 @@ import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import gamma02.villagertradinghallassistant.VillagerTradingHallAssistant;
-import net.minecraft.client.resource.language.I18n;;
+import net.minecraft.client.resource.language.I18n;
 
 import java.util.List;
 

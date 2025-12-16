@@ -30,9 +30,15 @@ public abstract class ClientWorldMixin {
 
     @Shadow @Final private List<AbstractClientPlayerEntity> players;
 
+//    @Shadow
+//    protected abstract void addParticle(ParticleEffect particleEffect, boolean bl, boolean bl2, double d, double e, double f, double g, double h, double i);
+
+    @Shadow
+    public abstract void addParticleClient(ParticleEffect parameters, double x, double y, double z, double velocityX, double velocityY, double velocityZ);
+
     private ThreadLocal<Boolean> idk = ThreadLocal.withInitial(() -> true);
 
-    @Shadow public abstract void addParticle(ParticleEffect parameters, double x, double y, double z, double velocityX, double velocityY, double velocityZ);
+//    @Shadow public abstract void addParticle(ParticleEffect parameters, double x, double y, double z, double velocityX, double velocityY, double velocityZ);
 
     @Inject(method = "tick", at = @At("HEAD"))
     public void tickMixin(BooleanSupplier shouldKeepTicking, CallbackInfo ci){
@@ -40,9 +46,10 @@ public abstract class ClientWorldMixin {
             if(Random.create().nextBetween(1, 10) == 5) {
                 BlockPos workstation = VillagerTradingHallAssistant.workstation;
                 Vec3d particlePos = new Vec3d(workstation.getX() + 0.5, workstation.getY() + 1.3, workstation.getZ() + 0.5);
-                MinecraftClient.getInstance().world.addParticle(ParticleTypes.HAPPY_VILLAGER, particlePos.x, particlePos.y, particlePos.z, 0, 0, 0);
+                MinecraftClient.getInstance().world.addParticleClient(ParticleTypes.HAPPY_VILLAGER, particlePos.x, particlePos.y, particlePos.z, 0, 0, 0);
             }
         }
+
         if(VillagerTradingHallAssistant.villager != null){
             if(Random.create().nextBetween(1, 10) == 5)
                 produceParticles(ParticleTypes.HAPPY_VILLAGER);
@@ -65,7 +72,7 @@ public abstract class ClientWorldMixin {
             double d = random.nextGaussian() * 0.02;
             double e = random.nextGaussian() * 0.02;
             double f = random.nextGaussian() * 0.02;
-            this.addParticle(parameters, VillagerTradingHallAssistant.villager.getParticleX(1.0), VillagerTradingHallAssistant.villager.getRandomBodyY() + 1.0, VillagerTradingHallAssistant.villager.getParticleZ(1.0), d, e, f);
+            this.addParticleClient(parameters, VillagerTradingHallAssistant.villager.getParticleX(1.0), VillagerTradingHallAssistant.villager.getRandomBodyY() + 1.0, VillagerTradingHallAssistant.villager.getParticleZ(1.0), d, e, f);
         }
     }
 

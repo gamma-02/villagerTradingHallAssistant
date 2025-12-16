@@ -31,13 +31,13 @@ public class HotkeyHandlers {
             if(MinecraftClient.getInstance().targetedEntity instanceof VillagerEntity villager){
                 VillagerTradingHallAssistant.villager = villager;
                 if(Configs.AUTO_FIND_WORKSTATION.getBooleanValue() && villager.getBrain().getOptionalMemory(MemoryModuleType.JOB_SITE).isPresent()){
-                    BlockPos workstation = villager.getBrain().getOptionalMemory(MemoryModuleType.JOB_SITE).get().getPos();
-                    VillagerTradingHallAssistant.workstation = villager.getBrain().getOptionalMemory(MemoryModuleType.JOB_SITE).get().getPos();
+                    BlockPos workstation = villager.getBrain().getOptionalMemory(MemoryModuleType.JOB_SITE).get().pos();
+                    VillagerTradingHallAssistant.workstation = villager.getBrain().getOptionalMemory(MemoryModuleType.JOB_SITE).get().pos();
                     System.out.println(workstation);
                 }
                 return true;
             }else{
-                MinecraftClient.getInstance().gameRenderer.updateTargetedEntity(MinecraftClient.getInstance().getTickDelta());
+                MinecraftClient.getInstance().gameRenderer.updateCrosshairTarget(MinecraftClient.getInstance().getRenderTickCounter().getDynamicDeltaTicks());
             }
 
 

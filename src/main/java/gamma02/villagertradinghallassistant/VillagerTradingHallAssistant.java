@@ -14,8 +14,8 @@ import gamma02.villagertradinghallassistant.config.Hotkeys;
 import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.util.math.BlockPos;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 import static gamma02.villagertradinghallassistant.config.Hotkeys.HOTKEYS_FOR_MAP;

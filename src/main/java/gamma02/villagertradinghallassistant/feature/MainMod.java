@@ -2,20 +2,30 @@ package gamma02.villagertradinghallassistant.feature;
 
 import gamma02.villagertradinghallassistant.VillagerTradingHallAssistant;
 import gamma02.villagertradinghallassistant.config.Configs;
+import gamma02.villagertradinghallassistant.mixin.MinecraftClientMixin;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.MerchantScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.*;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
+import net.minecraft.registry.BuiltinRegistries;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
@@ -51,10 +61,19 @@ public class MainMod {
         ClientWorld world = MinecraftClient.getInstance().world;
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
 
+        InputUtil.Key attackKey = ((BoundKeyHolder) MinecraftClient.getInstance().options.attackKey).getBoundKey();
+
+        if(VillagerTradingHallAssistant.isBreakingBlock && !MinecraftClient.getInstance().options.attackKey.isPressed()){
+            KeyBinding.onKeyPressed(attackKey);
+            KeyBinding.setKeyPressed(attackKey, true);
+        }
+
         if(VillagerTradingHallAssistant.workstation != null && world.getBlockState(VillagerTradingHallAssistant.workstation).getBlock() == Blocks.AIR && toRefreshTrades){
             toRefreshTrades = false;
             hasRefreshedTrades = true;
-//            MinecraftClient.getInstance().options.attackKey.setPressed(false);
+//            InputUtil.Key attackKey = ((BoundKeyHolder) MinecraftClient.getInstance().options.attackKey).getBoundKey();
+//            KeyBinding.onKeyPressed(attackKey);
+//            KeyBinding.setKeyPressed(attackKey, false);
         }
 
 
@@ -70,8 +89,10 @@ public class MainMod {
 
             if(toRefreshTrades && MinecraftClient.getInstance().currentScreen != null){
                 MinecraftClient.getInstance().currentScreen.close();
-                MinecraftClient.getInstance().options.attackKey.setPressed(true);
-                MinecraftClient.getInstance().options.attackKey.setPressed(false);
+//                InputUtil.Key attackKey = ((BoundKeyHolder) MinecraftClient.getInstance().options.attackKey).getBoundKey();
+//                KeyBinding.onKeyPressed(attackKey);
+//                KeyBinding.setKeyPressed(attackKey, true);
+//                KeyBinding.setKeyPressed(attackKey, false);
             }
 
 //            if(toBreakWorkstation && MinecraftClient.getInstance().currentScreen != null){
@@ -91,18 +112,26 @@ public class MainMod {
 
                 player.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, new Vec3d(VillagerTradingHallAssistant.workstation.getX() + 0.5, VillagerTradingHallAssistant.workstation.getY()+0.5, VillagerTradingHallAssistant.workstation.getZ() + 0.5));
 
-                MinecraftClient.getInstance().options.attackKey.setPressed(true);
+//                MinecraftClient.getInstance().options.attackKey.setPressed(true);
+
+//                InputUtil.Key attackKey = ((BoundKeyHolder) MinecraftClient.getInstance().options.attackKey).getBoundKey();
+                KeyBinding.onKeyPressed(attackKey);
+                KeyBinding.setKeyPressed(attackKey, true);
+
+
                 VillagerTradingHallAssistant.isBreakingBlock = true;
+
 //                Objects.requireNonNull(MinecraftClient.getInstance().interactionManager).attackBlock(VillagerTradingHallAssistant.workstation, Direction.UP);
                 hasRefreshedTrades = false;
 //                toBreakWorkstation = false;
             } else{
-
+//                KeyBinding.onKeyPressed(attackKey);
+                KeyBinding.setKeyPressed(attackKey, false);
                 VillagerTradingHallAssistant.isBreakingBlock = false;
             }
 
 
-            if (Objects.requireNonNull(world).getBlockState(VillagerTradingHallAssistant.workstation).getBlock() == Blocks.AIR && VillagerTradingHallAssistant.villager != null && VillagerTradingHallAssistant.villager.getVillagerData().getProfession() == VillagerProfession.NONE){
+            if (Objects.requireNonNull(world).getBlockState(VillagerTradingHallAssistant.workstation).getBlock() == Blocks.AIR && VillagerTradingHallAssistant.villager != null && VillagerTradingHallAssistant.villager.getVillagerData().profession().matchesKey(VillagerProfession.NONE)){
 //                VillagerTradingHallAssistant.isBreakingBlock = false;
                 placeWorkstation(VillagerTradingHallAssistant.workstation, (BlockItem) workstation.asItem());//please never be weird lol
             }
@@ -118,7 +147,7 @@ public class MainMod {
             VillagerEntity villager = VillagerTradingHallAssistant.villager;
 
 
-            if(villager.getVillagerData().getProfession() == VillagerProfession.LIBRARIAN && hasRefreshedTrades &&
+            if(villager.getVillagerData().profession().matchesKey(VillagerProfession.LIBRARIAN) && hasRefreshedTrades &&
                     MinecraftClient.getInstance().currentScreen instanceof MerchantScreen merchantScreen &&
                 !merchantScreen.getScreenHandler().getRecipes().equals(trades)) {
                 toRefreshTrades = true;
@@ -128,13 +157,24 @@ public class MainMod {
                 for (TradeOffer offer : (merchantScreen).getScreenHandler().getRecipes()) {
                     ItemStack stack = offer.getSellItem();
                     if (stack.getItem() == Items.ENCHANTED_BOOK) {
-                        Identifier enchant = new Identifier(((NbtCompound) EnchantedBookItem.getEnchantmentNbt(stack).get(0)).getString("id"));
-                        System.out.println(enchant);
-                        System.out.println("%s at lvl: %d cost: %d".formatted(enchant.toString(), ((NbtCompound) EnchantedBookItem.getEnchantmentNbt(stack).get(0)).getInt("lvl"), offer.getAdjustedFirstBuyItem().getCount()));
-                        if (Configs.ACCEPTABLE_ENCHANTMENTS.getStrings().contains(enchant.getPath()) &&
-                                Objects.requireNonNull(Registries.ENCHANTMENT.get(enchant)).getMaxLevel()/*I SHOULD HOPE that this will never be null lmao*/ == ((NbtCompound) EnchantedBookItem.getEnchantmentNbt(stack).get(0)).getInt("lvl")
-                                && offer.getAdjustedFirstBuyItem().getCount() <= Configs.MAX_COST.getIntegerValue()) {
-                            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of("Found enchantment " + enchant.getPath()));
+                        var enchants = stack.getComponents().get(DataComponentTypes.STORED_ENCHANTMENTS);
+
+                        if(enchants == null) continue;
+
+                        var enchantHolder = enchants.getEnchantments().stream().findAny();
+
+                        if(enchantHolder.isEmpty()){
+                            continue;
+                        }
+
+                        RegistryEntry<Enchantment> enchant = enchantHolder.orElseThrow();
+//                        System.out.println(enchant.getIdAsString());
+                        System.out.printf("%s at lvl: %d cost: %d%n", enchant.getIdAsString(), enchants.getLevel(enchant), offer.getDisplayedFirstBuyItem().getCount());
+
+                        if (Configs.ACCEPTABLE_ENCHANTMENTS.getStrings().contains(enchant.getKey().map(key -> key.getValue().getPath()).orElse("[unregistered]"))
+                                && enchant.value().getMaxLevel() == enchants.getLevel(enchant)
+                                && offer.getDisplayedFirstBuyItem().getCount() <= Configs.MAX_COST.getIntegerValue()) {
+                            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of("Found enchantment " + enchant.getKey().map(key -> key.getValue().getPath()).orElse("[unregistered]")));
                             toRefreshTrades = false;
                             trades = null;
                             Configs.ENABLE_MOD.resetToDefault();
@@ -160,9 +200,9 @@ public class MainMod {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         int slot = player.getInventory().getSlotWithStack(block.getDefaultStack());
         if(PlayerInventory.isValidHotbarIndex(slot)){
-            player.getInventory().selectedSlot = slot;
+            player.getInventory().setSelectedSlot(slot);
         }else if(slot != -1){
-            MinecraftClient.getInstance().interactionManager.pickFromInventory(slot);
+            MinecraftClient.getInstance().interactionManager.pickItemFromBlock(pos, true);
         }
         BlockHitResult result = new BlockHitResult(new Vec3d(pos.getX(), pos.getY(), pos.getZ()), Direction.UP, pos, false);
         placeBlockWithoutInteractingBlock(MinecraftClient.getInstance(), result);
@@ -173,15 +213,15 @@ public class MainMod {
 
 
         int slot = 0;
-        for(ItemStack stack : player.getInventory().main){
-            if(stack.getItem().isSuitableFor(workstation)){
+        for(ItemStack stack : player.getInventory().getMainStacks()){
+            if(stack.getItem().isCorrectForDrops(stack, workstation)){
                 break;
             }
 
             slot++;
         }
         if(PlayerInventory.isValidHotbarIndex(slot)) {
-            player.getInventory().selectedSlot = slot;
+            player.getInventory().setSelectedSlot(slot);
             switched = true;
         }
 
@@ -199,7 +239,7 @@ public class MainMod {
         minecraftClient.interactionManager.sendSequencedPacket(minecraftClient.world, sequence ->
                 new PlayerInteractBlockC2SPacket(Hand.MAIN_HAND, hitResult, sequence));
 
-        if (!itemStack.isEmpty() && !player.getItemCooldownManager().isCoolingDown(itemStack.getItem())) {
+        if (!itemStack.isEmpty() && !player.getItemCooldownManager().isCoolingDown(itemStack)) {
             ItemUsageContext itemUsageContext = new ItemUsageContext(player, Hand.MAIN_HAND, hitResult);
             itemStack.useOnBlock(itemUsageContext);
 

@@ -18,6 +18,7 @@ import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.*;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
@@ -28,6 +29,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.village.TradeOffer;
 import net.minecraft.village.TradeOfferList;
 import net.minecraft.village.VillagerProfession;
+import net.minecraft.world.poi.PointOfInterestTypes;
 
 import java.util.Objects;
 
@@ -60,7 +62,12 @@ public class MainMod {
             KeyBinding.setKeyPressed(attackKey, true);
         }
 
-        if(VillagerTradingHallAssistant.workstation != null && world.getBlockState(VillagerTradingHallAssistant.workstation).getBlock() != Blocks.LECTERN && toRefreshTrades){
+        if(
+                VillagerTradingHallAssistant.workstation != null
+                && !PointOfInterestTypes.isPointOfInterest(Objects.requireNonNull(world)
+                .getBlockState(VillagerTradingHallAssistant.workstation))
+                && toRefreshTrades
+            ){
             toRefreshTrades = false;
             hasRefreshedTrades = true;
 //            InputUtil.Key attackKey = ((BoundKeyHolder) MinecraftClient.getInstance().options.attackKey).getBoundKey();
@@ -123,7 +130,14 @@ public class MainMod {
             }
 
 
-            if (Objects.requireNonNull(world).getBlockState(VillagerTradingHallAssistant.workstation).getBlock() == Blocks.AIR && VillagerTradingHallAssistant.villager != null && VillagerTradingHallAssistant.villager.getVillagerData().profession().matchesKey(VillagerProfession.NONE)){
+            if (!PointOfInterestTypes.isPointOfInterest(Objects.requireNonNull(world)
+                    .getBlockState(VillagerTradingHallAssistant.workstation))
+                    && VillagerTradingHallAssistant.villager != null
+                    && VillagerTradingHallAssistant.villager
+                        .getVillagerData()
+                        .profession()
+                        .matchesKey(VillagerProfession.NONE)
+                ){
 //                VillagerTradingHallAssistant.isBreakingBlock = false;
                 placeWorkstation(VillagerTradingHallAssistant.workstation, (BlockItem) workstation.asItem());//please never be weird lol
             }

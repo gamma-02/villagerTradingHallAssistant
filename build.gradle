@@ -41,7 +41,7 @@ dependencies {
     modImplementation "fi.dy.masa.malilib:malilib-fabric-${project.minecraft_version_out}:${project.malilib_version}"
 
     //trade cycling
-    if(using_trade_cycling) {
+    if(using_trade_cycling == "true") {
         modImplementation "maven.modrinth:qpPoAL6m:${project.trade_cycling_version}"
     }
 
@@ -77,7 +77,7 @@ java {
     if (JavaVersion.current() < javaVersion) {
         toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
     }
-    if(!using_trade_cycling) {
+    if(using_trade_cycling == "false") {
         base.archivesName = project.archives_base_name + "-" + project.minecraft_version_out
     } else {
         base.archivesName = project.archives_base_name + "-" + project.minecraft_version_out + "-tc"

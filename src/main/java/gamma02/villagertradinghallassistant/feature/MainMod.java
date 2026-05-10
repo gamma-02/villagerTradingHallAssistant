@@ -1,5 +1,6 @@
 package gamma02.villagertradinghallassistant.feature;
 
+import de.maxhenkel.tradecycling.FabricTradeCyclingClientMod;
 import gamma02.villagertradinghallassistant.VillagerTradingHallAssistant;
 import gamma02.villagertradinghallassistant.config.Configs;
 import net.minecraft.block.Block;
@@ -9,6 +10,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.MerchantScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
@@ -20,6 +22,7 @@ import net.minecraft.item.*;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -52,98 +55,106 @@ public class MainMod {
 
     public void tick(){
 
-        ClientWorld world = MinecraftClient.getInstance().world;
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        MinecraftClient mc = MinecraftClient.getInstance();
 
-        InputUtil.Key attackKey = ((BoundKeyHolder) MinecraftClient.getInstance().options.attackKey).getBoundKey();
+        ClientWorld world = mc.world;
+        ClientPlayerEntity player = mc.player;
 
-        if(VillagerTradingHallAssistant.isBreakingBlock && !MinecraftClient.getInstance().options.attackKey.isPressed()){
-            KeyBinding.onKeyPressed(attackKey);
-            KeyBinding.setKeyPressed(attackKey, true);
-        }
+        if(player == null)
+            return;
 
-        if(
-                VillagerTradingHallAssistant.workstation != null
-                && !PointOfInterestTypes.isPointOfInterest(Objects.requireNonNull(world)
-                .getBlockState(VillagerTradingHallAssistant.workstation))
-                && toRefreshTrades
-            ){
-            toRefreshTrades = false;
-            hasRefreshedTrades = true;
-//            InputUtil.Key attackKey = ((BoundKeyHolder) MinecraftClient.getInstance().options.attackKey).getBoundKey();
+        if(world == null)
+            return;
+
+//        InputUtil.Key attackKey = ((BoundKeyHolder) mc.options.attackKey).getBoundKey();
+
+//        if(VillagerTradingHallAssistant.isBreakingBlock && !mc.options.attackKey.isPressed()){
 //            KeyBinding.onKeyPressed(attackKey);
-//            KeyBinding.setKeyPressed(attackKey, false);
+//            KeyBinding.setKeyPressed(attackKey, true);
+//        }
+//
+//        if(
+//                VillagerTradingHallAssistant.workstation != null
+//                && !PointOfInterestTypes.isPointOfInterest(Objects.requireNonNull(world)
+//                .getBlockState(VillagerTradingHallAssistant.workstation))
+//                && toRefreshTrades
+//            ){
+//            toRefreshTrades = false;
+//            hasRefreshedTrades = true;
+////            InputUtil.Key attackKey = ((BoundKeyHolder) mc.options.attackKey).getBoundKey();
+////            KeyBinding.onKeyPressed(attackKey);
+////            KeyBinding.setKeyPressed(attackKey, false);
+//        }
+
+
+        if(VillagerTradingHallAssistant.villager != null && mc.currentScreen == null && !toRefreshTrades && mc.interactionManager != null){
+            mc.interactionManager.interactEntity(player, VillagerTradingHallAssistant.villager, player.getActiveHand());
         }
 
 
-        if(VillagerTradingHallAssistant.villager != null && MinecraftClient.getInstance().currentScreen == null && !toRefreshTrades){
-            MinecraftClient.getInstance().interactionManager.interactEntity(player, VillagerTradingHallAssistant.villager, player.getActiveHand());
-        }
 
 
-
-
-        if(VillagerTradingHallAssistant.workstation != null) {
-
-
-            if(toRefreshTrades && MinecraftClient.getInstance().currentScreen != null){
-                MinecraftClient.getInstance().currentScreen.close();
-//                InputUtil.Key attackKey = ((BoundKeyHolder) MinecraftClient.getInstance().options.attackKey).getBoundKey();
+//        if(VillagerTradingHallAssistant.workstation != null) {
+//
+//
+//            if(toRefreshTrades && mc.currentScreen != null){
+//                mc.currentScreen.close();
+////                InputUtil.Key attackKey = ((BoundKeyHolder) mc.options.attackKey).getBoundKey();
+////                KeyBinding.onKeyPressed(attackKey);
+////                KeyBinding.setKeyPressed(attackKey, true);
+////                KeyBinding.setKeyPressed(attackKey, false);
+//            }
+//
+////            if(toBreakWorkstation && mc.currentScreen != null){
+////                mc.currentScreen.close();
+////            }
+//
+//
+//            if (toRefreshTrades && mc.currentScreen == null) {
+//                workstation = world.getBlockState(VillagerTradingHallAssistant.workstation).getBlock();
+//                if(!switchToEffectiveTool(world.getBlockState(VillagerTradingHallAssistant.workstation), player)){
+//                    if(toolWarning) {
+//                        mc.inGameHud.getChatHud().addMessage(Text.of("No effective tool in the hotbar! please put the effective tool for the workstation in your hotbar."));
+//                        toolWarning = false;
+//                    }
+//                    return;
+//                }
+//
+//                player.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, new Vec3d(VillagerTradingHallAssistant.workstation.getX() + 0.5, VillagerTradingHallAssistant.workstation.getY()+0.5, VillagerTradingHallAssistant.workstation.getZ() + 0.5));
+//
+////                mc.options.attackKey.setPressed(true);
+//
+////                InputUtil.Key attackKey = ((BoundKeyHolder) mc.options.attackKey).getBoundKey();
 //                KeyBinding.onKeyPressed(attackKey);
 //                KeyBinding.setKeyPressed(attackKey, true);
+//
+//
+//                VillagerTradingHallAssistant.isBreakingBlock = true;
+//
+////                Objects.requireNonNull(mc.interactionManager).attackBlock(VillagerTradingHallAssistant.workstation, Direction.UP);
+//                hasRefreshedTrades = false;
+////                toBreakWorkstation = false;
+//            } else{
+////                KeyBinding.onKeyPressed(attackKey);
 //                KeyBinding.setKeyPressed(attackKey, false);
-            }
-
-//            if(toBreakWorkstation && MinecraftClient.getInstance().currentScreen != null){
-//                MinecraftClient.getInstance().currentScreen.close();
-//            }
-
-
-            if (toRefreshTrades && MinecraftClient.getInstance().currentScreen == null) {
-                workstation = world.getBlockState(VillagerTradingHallAssistant.workstation).getBlock();
-                if(!switchToEffectiveTool(world.getBlockState(VillagerTradingHallAssistant.workstation), player)){
-                    if(toolWarning) {
-                        MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of("No effective tool in the hotbar! please put the effective tool for the workstation in your hotbar."));
-                        toolWarning = false;
-                    }
-                    return;
-                }
-
-                player.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, new Vec3d(VillagerTradingHallAssistant.workstation.getX() + 0.5, VillagerTradingHallAssistant.workstation.getY()+0.5, VillagerTradingHallAssistant.workstation.getZ() + 0.5));
-
-//                MinecraftClient.getInstance().options.attackKey.setPressed(true);
-
-//                InputUtil.Key attackKey = ((BoundKeyHolder) MinecraftClient.getInstance().options.attackKey).getBoundKey();
-                KeyBinding.onKeyPressed(attackKey);
-                KeyBinding.setKeyPressed(attackKey, true);
-
-
-                VillagerTradingHallAssistant.isBreakingBlock = true;
-
-//                Objects.requireNonNull(MinecraftClient.getInstance().interactionManager).attackBlock(VillagerTradingHallAssistant.workstation, Direction.UP);
-                hasRefreshedTrades = false;
-//                toBreakWorkstation = false;
-            } else{
-//                KeyBinding.onKeyPressed(attackKey);
-                KeyBinding.setKeyPressed(attackKey, false);
-                VillagerTradingHallAssistant.isBreakingBlock = false;
-            }
-
-
-            if (!PointOfInterestTypes.isPointOfInterest(Objects.requireNonNull(world)
-                    .getBlockState(VillagerTradingHallAssistant.workstation))
-                    && VillagerTradingHallAssistant.villager != null
-                    && VillagerTradingHallAssistant.villager
-                        .getVillagerData()
-                        .getProfession() == VillagerProfession.NONE
-//                        .matchesKey(VillagerProfession.NONE)
-                ){
 //                VillagerTradingHallAssistant.isBreakingBlock = false;
-                placeWorkstation(VillagerTradingHallAssistant.workstation, (BlockItem) workstation.asItem());//please never be weird lol
-            }
-
-
-        }
+//            }
+//
+//
+//            if (!PointOfInterestTypes.isPointOfInterest(Objects.requireNonNull(world)
+//                    .getBlockState(VillagerTradingHallAssistant.workstation))
+//                    && VillagerTradingHallAssistant.villager != null
+//                    && VillagerTradingHallAssistant.villager
+//                        .getVillagerData()
+//                        .getProfession() == VillagerProfession.NONE
+////                        .matchesKey(VillagerProfession.NONE)
+//                ){
+////                VillagerTradingHallAssistant.isBreakingBlock = false;
+//                placeWorkstation(VillagerTradingHallAssistant.workstation, (BlockItem) workstation.asItem());//please never be weird lol
+//            }
+//
+//
+//        }
 
 
         if(VillagerTradingHallAssistant.villager != null){
@@ -151,7 +162,7 @@ public class MainMod {
             VillagerEntity villager = VillagerTradingHallAssistant.villager;
 
             if(villager.getVillagerData().getProfession() == VillagerProfession.LIBRARIAN && hasRefreshedTrades &&
-                    MinecraftClient.getInstance().currentScreen instanceof MerchantScreen merchantScreen &&
+                    mc.currentScreen instanceof MerchantScreen merchantScreen &&
                 !merchantScreen.getScreenHandler().getRecipes().equals(trades)) {
                 toRefreshTrades = true;
                 hasRefreshedTrades = false;
@@ -172,12 +183,12 @@ public class MainMod {
 
                         RegistryEntry<Enchantment> enchant = enchantHolder.orElseThrow();
 //                        System.out.println(enchant.getIdAsString());
-                        System.out.printf("%s at lvl: %d cost: %d%n", enchant.getIdAsString(), enchants.getLevel(enchant), offer.getDisplayedFirstBuyItem().getCount());
+                        System.out.println("%s at lvl: %d cost: %d%n".formatted(enchant.getIdAsString(), enchants.getLevel(enchant), offer.getDisplayedFirstBuyItem().getCount()));
 
                         if (Configs.ACCEPTABLE_ENCHANTMENTS.getStrings().contains(enchant.getKey().map(key -> key.getValue().getPath()).orElse("[unregistered]"))
                                 && enchant.value().getMaxLevel() == enchants.getLevel(enchant)
                                 && offer.getDisplayedFirstBuyItem().getCount() <= Configs.MAX_COST.getIntegerValue()) {
-                            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of("Found enchantment " + enchant.getKey().map(key -> key.getValue().getPath()).orElse("[unregistered]")));
+                            mc.inGameHud.getChatHud().addMessage(Text.of("Found enchantment " + enchant.getKey().map(key -> key.getValue().getPath()).orElse("[unregistered]")));
                             toRefreshTrades = false;
                             trades = null;
                             Configs.ENABLE_MOD.resetToDefault();
@@ -186,16 +197,18 @@ public class MainMod {
                 }
             }
         }
-//        if(toRefreshTrades && !hasRefreshedTrades && MinecraftClient.getInstance().currentScreen instanceof MerchantScreen screen && screen.getScreenHandler().getRecipes().equals(trades)){
-//            System.out.println("REFRESHING!");
-//            //send the trade cycling packet
-//            if (screen.getScreenHandler().isLeveled() && screen.getScreenHandler().getExperience() <= 0) {
-//                FabricTradeCyclingClientMod.instance().sendCycleTradesPacket();
-//                mc.getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-//            }
-//            hasRefreshedTrades = true;
-//
-//        }
+
+        if(toRefreshTrades && !hasRefreshedTrades && mc.currentScreen instanceof MerchantScreen screen && screen.getScreenHandler().getRecipes().equals(trades)){
+//            System.out.println("Sending refresh packet");
+
+            //send the trade cycling packet
+            if (screen.getScreenHandler().isLeveled() && screen.getScreenHandler().getExperience() <= 0) {
+                FabricTradeCyclingClientMod.instance().sendCycleTradesPacket();
+                mc.getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+            }
+            hasRefreshedTrades = true;
+
+        }
 
     }
 

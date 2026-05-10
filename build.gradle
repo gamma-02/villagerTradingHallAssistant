@@ -80,7 +80,7 @@ java {
     if(using_trade_cycling == "false") {
         base.archivesName = project.archives_base_name + "-" + project.minecraft_version_out
     } else {
-        base.archivesName = project.archives_base_name + "-" + project.minecraft_version_out + "-tc"
+        base.archivesName = project.archives_base_name + "-tc-" + project.minecraft_version_out
     }
     // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
     // if it is present.

@@ -37,12 +37,10 @@ public class HotkeyHandlers {
                 }
                 return true;
             }else{
-                MinecraftClient.getInstance().gameRenderer.updateCrosshairTarget(MinecraftClient.getInstance().getRenderTickCounter().getDynamicDeltaTicks());
+//                MinecraftClient.getInstance().gameRenderer.updateCrosshairTarget(MinecraftClient.getInstance().getRenderTickCounter().getDynamicDeltaTicks());
+                MinecraftClient.getInstance().gameRenderer.updateCrosshairTarget(MinecraftClient.getInstance().getRenderTickCounter().getTickDelta(false));
+
             }
-
-
-
-
 
             return false;
         }
@@ -83,7 +81,6 @@ public class HotkeyHandlers {
 
                 GuiBase screen = new ConfigScreen();
                 GuiBase.openGui(screen);
-
 
             return true;
         }

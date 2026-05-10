@@ -135,8 +135,8 @@ public class MainMod {
                     && VillagerTradingHallAssistant.villager != null
                     && VillagerTradingHallAssistant.villager
                         .getVillagerData()
-                        .profession()
-                        .matchesKey(VillagerProfession.NONE)
+                        .getProfession() == VillagerProfession.NONE
+//                        .matchesKey(VillagerProfession.NONE)
                 ){
 //                VillagerTradingHallAssistant.isBreakingBlock = false;
                 placeWorkstation(VillagerTradingHallAssistant.workstation, (BlockItem) workstation.asItem());//please never be weird lol
@@ -148,12 +148,9 @@ public class MainMod {
 
         if(VillagerTradingHallAssistant.villager != null){
 
-
-
             VillagerEntity villager = VillagerTradingHallAssistant.villager;
 
-
-            if(villager.getVillagerData().profession().matchesKey(VillagerProfession.LIBRARIAN) && hasRefreshedTrades &&
+            if(villager.getVillagerData().getProfession() == VillagerProfession.LIBRARIAN && hasRefreshedTrades &&
                     MinecraftClient.getInstance().currentScreen instanceof MerchantScreen merchantScreen &&
                 !merchantScreen.getScreenHandler().getRecipes().equals(trades)) {
                 toRefreshTrades = true;
@@ -204,11 +201,18 @@ public class MainMod {
 
     public static void placeWorkstation(BlockPos pos, BlockItem block){
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
+
+        if(player == null)
+            return;
+
         int slot = player.getInventory().getSlotWithStack(block.getDefaultStack());
+
         if(PlayerInventory.isValidHotbarIndex(slot)){
-            player.getInventory().setSelectedSlot(slot);
+//            player.getInventory().setSelectedSlot(slot);
+            player.getInventory().selectedSlot = slot;
         }else if(slot != -1){
-            MinecraftClient.getInstance().interactionManager.pickItemFromBlock(pos, true);
+//            MinecraftClient.getInstance().interactionManager.pickItemFromBlock(pos, true);
+            MinecraftClient.getInstance().interactionManager.pickFromInventory(slot);
         }
         BlockHitResult result = new BlockHitResult(new Vec3d(pos.getX(), pos.getY(), pos.getZ()), Direction.UP, pos, false);
         placeBlockWithoutInteractingBlock(MinecraftClient.getInstance(), result);
@@ -219,15 +223,19 @@ public class MainMod {
 
 
         int slot = 0;
-        for(ItemStack stack : player.getInventory().getMainStacks()){
+        //searches through hotbar for correct tool
+        for(ItemStack stack : player.getInventory().main){
             if(stack.getItem().isCorrectForDrops(stack, workstation)){
                 break;
             }
 
             slot++;
         }
+
+        //sets tool
         if(PlayerInventory.isValidHotbarIndex(slot)) {
-            player.getInventory().setSelectedSlot(slot);
+//            player.getInventory().setSelectedSlot(slot);
+            player.getInventory().selectedSlot = slot;
             switched = true;
         }
 
@@ -240,12 +248,19 @@ public class MainMod {
 
     private static void placeBlockWithoutInteractingBlock(MinecraftClient minecraftClient, BlockHitResult hitResult) {
         ClientPlayerEntity player = minecraftClient.player;
+
+        if(player == null || minecraftClient.world == null)
+            return;
+
         ItemStack itemStack = player.getStackInHand(Hand.MAIN_HAND);
+
+        if(minecraftClient.interactionManager == null)
+            return;
 
         minecraftClient.interactionManager.sendSequencedPacket(minecraftClient.world, sequence ->
                 new PlayerInteractBlockC2SPacket(Hand.MAIN_HAND, hitResult, sequence));
 
-        if (!itemStack.isEmpty() && !player.getItemCooldownManager().isCoolingDown(itemStack)) {
+        if (!itemStack.isEmpty() && !player.getItemCooldownManager().isCoolingDown(itemStack.getItem())) {
             ItemUsageContext itemUsageContext = new ItemUsageContext(player, Hand.MAIN_HAND, hitResult);
             itemStack.useOnBlock(itemUsageContext);
 

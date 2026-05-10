@@ -41,7 +41,9 @@ dependencies {
     modImplementation "fi.dy.masa.malilib:malilib-fabric-${project.minecraft_version_out}:${project.malilib_version}"
 
     //trade cycling
-    //modImplementation "maven.modrinth:qpPoAL6m:${project.trade_cycling_version}"
+    if(using_trade_cycling) {
+        modImplementation "maven.modrinth:qpPoAL6m:${project.trade_cycling_version}"
+    }
 
 }
 
@@ -75,7 +77,11 @@ java {
     if (JavaVersion.current() < javaVersion) {
         toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
     }
-   base.archivesName = project.archives_base_name
+    if(!using_trade_cycling) {
+        base.archivesName = project.archives_base_name + "-" + project.minecraft_version_out
+    } else {
+        base.archivesName = project.archives_base_name + "-" + project.minecraft_version_out + "-tc"
+    }
     // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
     // if it is present.
     // If you remove this line, sources will not be generated.

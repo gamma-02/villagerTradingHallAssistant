@@ -33,10 +33,6 @@ public class VillagerTradingHallAssistant implements ClientModInitializer, IInit
 
     public static boolean isBreakingBlock = false;
 
-
-
-
-
     @Override
     public void onInitializeClient() {
 

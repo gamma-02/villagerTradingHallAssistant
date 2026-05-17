@@ -6,15 +6,16 @@ import com.google.gson.JsonObject;
 import fi.dy.masa.malilib.config.ConfigUtils;
 import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.IConfigHandler;
-import fi.dy.masa.malilib.config.options.ConfigBoolean;
-import fi.dy.masa.malilib.config.options.ConfigBooleanHotkeyed;
-import fi.dy.masa.malilib.config.options.ConfigInteger;
-import fi.dy.masa.malilib.config.options.ConfigStringList;
+import fi.dy.masa.malilib.config.options.*;
 import fi.dy.masa.malilib.util.FileUtils;
 import fi.dy.masa.malilib.util.JsonUtils;
+import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.util.Identifier;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static gamma02.villagertradinghallassistant.VillagerTradingHallAssistant.modid;
 
@@ -29,7 +30,11 @@ public class Configs implements IConfigHandler {
 
     public static final ConfigInteger MAX_COST = new ConfigInteger("maxTradeCost", 64, 0, 64, "this is a cutoff for how expensive a trade should be at max");
 
-    public static final List<IConfigBase> CONFIGS = List.of(AUTO_FIND_WORKSTATION, ACCEPTABLE_ENCHANTMENTS, ENABLE_MOD, MAX_COST);
+    public static final ConfigStringList ENCHANTMENT_LEVELS = new ConfigStringList("enchantLevel", ImmutableList.of(""), "level of enchantments, defaulting to automatically finding max. format: <(optional if minecraft)namespace:>path;level");
+
+    public static Map<Identifier, Integer> EnchantLevelMap = new HashMap<>();
+
+    public static final List<IConfigBase> CONFIGS = List.of(AUTO_FIND_WORKSTATION, ACCEPTABLE_ENCHANTMENTS, ENABLE_MOD, MAX_COST, ENCHANTMENT_LEVELS);
 
 
     public static void loadFromFile() {
@@ -64,10 +69,33 @@ public class Configs implements IConfigHandler {
     @Override
     public void load() {
         loadFromFile();
+
+        rebuildEnchantLevelMap();
     }
 
     @Override
     public void save() {
         saveToFile();
+
+        rebuildEnchantLevelMap();
+    }
+
+    private static void rebuildEnchantLevelMap() {
+        EnchantLevelMap.clear();
+
+        for (String s : ENCHANTMENT_LEVELS.getStrings()){
+            String[] split = s.split(";");
+
+            Identifier id = Identifier.of(split[0]);
+
+            int level;
+            try {
+                level = Integer.parseInt(split[1]);
+            } catch (Exception e) {
+                continue;
+            }
+
+            EnchantLevelMap.put(id, level);
+        }
     }
 }

@@ -5,26 +5,21 @@ import gamma02.villagertradinghallassistant.VillagerTradingHallAssistant;
 import gamma02.villagertradinghallassistant.config.Configs;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.MerchantScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.sound.PositionedSoundInstance;
-import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.*;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
-import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -32,9 +27,8 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.village.TradeOffer;
 import net.minecraft.village.TradeOfferList;
 import net.minecraft.village.VillagerProfession;
-import net.minecraft.world.poi.PointOfInterestTypes;
 
-import java.util.Objects;
+import java.util.Optional;
 
 public class MainMod {
     public static MainMod instance = new MainMod();
@@ -66,6 +60,9 @@ public class MainMod {
         if(world == null)
             return;
 
+        if(mc.interactionManager == null)
+            return;
+
 //        InputUtil.Key attackKey = ((BoundKeyHolder) mc.options.attackKey).getBoundKey();
 
 //        if(VillagerTradingHallAssistant.isBreakingBlock && !mc.options.attackKey.isPressed()){
@@ -87,8 +84,9 @@ public class MainMod {
 //        }
 
 
-        if(VillagerTradingHallAssistant.villager != null && mc.currentScreen == null && !toRefreshTrades && mc.interactionManager != null){
+        if(VillagerTradingHallAssistant.villager != null && mc.currentScreen == null && !toRefreshTrades){
             mc.interactionManager.interactEntity(player, VillagerTradingHallAssistant.villager, player.getActiveHand());
+            hasRefreshedTrades = true;
         }
 
 
@@ -156,43 +154,34 @@ public class MainMod {
 //
 //        }
 
+        VillagerEntity villager = VillagerTradingHallAssistant.villager;
+        if(villager != null && villager.getVillagerData().getProfession() == VillagerProfession.LIBRARIAN && hasRefreshedTrades &&
+                mc.currentScreen instanceof MerchantScreen merchantScreen &&
+                !merchantScreen.getScreenHandler().getRecipes().equals(trades)){
+            toRefreshTrades = true;
+            hasRefreshedTrades = false;
+            trades = merchantScreen.getScreenHandler().getRecipes();
 
-        if(VillagerTradingHallAssistant.villager != null){
+            for (TradeOffer offer : (merchantScreen).getScreenHandler().getRecipes()) {
+                ItemStack stack = offer.getSellItem();
+                if (stack.getItem() == Items.ENCHANTED_BOOK) {
+                    ItemEnchantmentsComponent enchants = stack.getComponents().get(DataComponentTypes.STORED_ENCHANTMENTS);
 
-            VillagerEntity villager = VillagerTradingHallAssistant.villager;
+                    if(enchants == null) continue;
 
-            if(villager.getVillagerData().getProfession() == VillagerProfession.LIBRARIAN && hasRefreshedTrades &&
-                    mc.currentScreen instanceof MerchantScreen merchantScreen &&
-                !merchantScreen.getScreenHandler().getRecipes().equals(trades)) {
-                toRefreshTrades = true;
-                hasRefreshedTrades = false;
-                trades = merchantScreen.getScreenHandler().getRecipes();
+                    Optional<RegistryEntry<Enchantment>> enchantHolder = enchants.getEnchantments().stream().findAny();
 
-                for (TradeOffer offer : (merchantScreen).getScreenHandler().getRecipes()) {
-                    ItemStack stack = offer.getSellItem();
-                    if (stack.getItem() == Items.ENCHANTED_BOOK) {
-                        var enchants = stack.getComponents().get(DataComponentTypes.STORED_ENCHANTMENTS);
+                    if(enchantHolder.isEmpty()){
+                        continue;
+                    }
 
-                        if(enchants == null) continue;
+                    RegistryEntry<Enchantment> enchant = enchantHolder.orElseThrow();
+                    String enchantId = enchant.getIdAsString();
 
-                        var enchantHolder = enchants.getEnchantments().stream().findAny();
+                    System.out.println("%s at lvl: %d cost: %d%n".formatted(enchantId, enchants.getLevel(enchant), offer.getDisplayedFirstBuyItem().getCount()));
 
-                        if(enchantHolder.isEmpty()){
-                            continue;
-                        }
-
-                        RegistryEntry<Enchantment> enchant = enchantHolder.orElseThrow();
-//                        System.out.println(enchant.getIdAsString());
-                        System.out.println("%s at lvl: %d cost: %d%n".formatted(enchant.getIdAsString(), enchants.getLevel(enchant), offer.getDisplayedFirstBuyItem().getCount()));
-
-                        if (Configs.ACCEPTABLE_ENCHANTMENTS.getStrings().contains(enchant.getKey().map(key -> key.getValue().getPath()).orElse("[unregistered]"))
-                                && enchant.value().getMaxLevel() == enchants.getLevel(enchant)
-                                && offer.getDisplayedFirstBuyItem().getCount() <= Configs.MAX_COST.getIntegerValue()) {
-                            mc.inGameHud.getChatHud().addMessage(Text.of("Found enchantment " + enchant.getKey().map(key -> key.getValue().getPath()).orElse("[unregistered]")));
-                            toRefreshTrades = false;
-                            trades = null;
-                            Configs.ENABLE_MOD.resetToDefault();
-                        }
+                    if (Configs.ACCEPTABLE_ENCHANTMENTS.getStrings().contains(enchantId)) {
+                        foundAcceptableEnchant(mc, enchant, enchantId, enchants, offer);
                     }
                 }
             }
@@ -204,12 +193,32 @@ public class MainMod {
             //send the trade cycling packet
             if (screen.getScreenHandler().isLeveled() && screen.getScreenHandler().getExperience() <= 0) {
                 FabricTradeCyclingClientMod.instance().sendCycleTradesPacket();
-                mc.getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+//                mc.getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             }
             hasRefreshedTrades = true;
 
         }
 
+    }
+
+    public void foundAcceptableEnchant(MinecraftClient mc, RegistryEntry<Enchantment> enchant, String enchantIdString, ItemEnchantmentsComponent enchants, TradeOffer offer) {
+
+        Identifier enchantId = Identifier.of(enchantIdString);
+        int enchantLevel = enchants.getLevel(enchant);
+
+        if(Configs.EnchantLevelMap.containsKey(enchantId) && Configs.EnchantLevelMap.get(enchantId) > enchantLevel)
+            return;
+        else if(enchant.value().getMaxLevel() != enchantLevel)
+            return;
+
+        if(offer.getDisplayedFirstBuyItem().getCount() > Configs.MAX_COST.getIntegerValue())
+            return;
+
+
+        mc.inGameHud.getChatHud().addMessage(Text.of("Found enchantment " + enchant.getKey().map(key -> key.getValue().getPath()).orElse("[unregistered]")));
+        toRefreshTrades = false;
+        trades = null;
+        Configs.ENABLE_MOD.resetToDefault();
     }
 
     public static void placeWorkstation(BlockPos pos, BlockItem block){
